@@ -23,6 +23,7 @@
 		transitionDuration    : 800,      // Int (default 800): Transition length in ms
 		startSlide            : 0,        // Int (default 0): First slide
 		keyNav                : true,     // Bool (default true): Use left/right arrow keys to switch slide
+        touchNav              : true,     // Bool (default true): Use swipe left/right on touch devices to change slide
 		captionWidth          : 50,       // Int (default 50): Percentage of slide taken by caption
 		arrowTemplate         : '<div class="rs-arrows"><a href="#" class="rs-prev"></a><a href="#" class="rs-next"></a></div>', // String: The markup used for arrow controls (if arrows are used). Must use classes '.rs-next' & '.rs-prev'
 		onInit                : function () {}, // Func: User-defined, fires with slider initialisation
@@ -41,7 +42,8 @@
 		this.currentPlace       = this.settings['startSlide'];         // Int: Index of current slide (starts at 0)
 		this.$currentSlide      = $(this.$slides[this.currentPlace]);  // Elem: Starting slide
 		this.inProgress         = false;                               // Bool: Prevents overlapping transitions
-		this.$sliderWrap        = this.$slider.wrap('<div class="rs-wrap" />').parent();      // Elem: Slider wrapper div
+        this.inProgressTouch    = false;                               // Bool: Prevents multiple touch moving tracks
+        this.$sliderWrap        = this.$slider.wrap('<div class="rs-wrap" />').parent();      // Elem: Slider wrapper div
 		this.$sliderBG          = this.$slider.wrap('<div class="rs-slide-bg" />').parent();  // Elem: Slider background (useful for styling & essential for cube transitions)
 		this.settings['slider'] = this;  // Make slider object accessible to client call code with 'this.slider' (there's probably a better way to do this)
 
@@ -64,6 +66,9 @@
 
             // Setup keyboard navigation
             if (this.settings['keyNav']) this.setKeys();
+
+            // Setup touch navigation
+            if (this.settings['touchNav']) this.setTouch();
 
             // Add slide identifying classes
             for (var i = 0; i < this.totalSlides; i++) {
@@ -185,6 +190,17 @@
             });
         }
 
+        ,setTouch: function () {
+            var _this = this;
+
+            console.log('attaching touch controls');
+
+            this.$slider.on('touchstart','li', touchSlideStart);
+            this.$slider.on('touchmove','li', touchSlideMove);
+            this.$slider.on('touchend','li', touchSlideEnd);
+
+        }
+
         ,setAutoPlay: function () {
             var _this = this;
 
@@ -252,7 +268,7 @@
                 if (slideNum !== this.currentPlace) {
                     // Check whether the requested slide index is ahead or behind in the array (if not passed in as param)
                     if(forward === undefined) {
-                    	forward = slideNum > this.currentPlace ? true : false;
+                        forward = slideNum > this.currentPlace ? true : false;
                     }
 
                     // Assign next slide prop (elem)
@@ -276,6 +292,34 @@
             }
         }
     };
+
+
+    function touchSlideStart(event){
+        preventDefaultScrolling(e);
+
+        console.log('slideStart', this.inProgressTouch);
+
+    }
+
+    function touchSlideMove(event){
+
+        event.preventDefault();
+        console.log('slideStart');
+
+    }
+
+    function touchSlideEnd(event){
+        event.preventDefault();
+
+        console.log('slideStart');
+
+    }
+
+    function preventPageScroll(e){
+        $('body').bind('touch', function(e){
+            e.preventDefault();
+        });
+    }
 
 	// Transition object constructor
 	function Transition(RS, transition, forward) {
